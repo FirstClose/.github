@@ -47,7 +47,7 @@ jobs:
 
       # Install NPM packages
       - name: Install NPM packages
-        run: npm install
+        run: npm ci --ignore-scripts
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
 
