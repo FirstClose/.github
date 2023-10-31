@@ -116,7 +116,7 @@ jobs:
           elif [[ $ENV == 'qa' ]]; then
             PREFIX=QA_
           elif [[ $ENV == 'staging' ]]; then
-            PREFIX=TEST_
+            PREFIX=UAT_
           elif [[ $ENV == 'prod' ]]; then
             PREFIX=''
           else
@@ -140,8 +140,15 @@ jobs:
           done
         shell: bash
         env:
+          ENV: ${{ env.ENVIRONMENT_NAME }}
           ALLMYSECRETS: ${{ toJson(secrets) }}
           ALLMYVARS: ${{ toJson(vars) }}
+      # TODO: Remove
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.sha }}
+          path: .env
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
