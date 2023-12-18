@@ -17,10 +17,9 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # TODO: Remove the suffix -test as it is a testing phase
-  IMAGE_NAME: ${{ github.repository }}-test
+  IMAGE_NAME: ${{ github.repository }}-ng
   REPO_NAME: ""
-  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'qa' || github.ref == 'refs/heads/develop' && 'develop' || startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-rc') && 'staging' || startsWith(github.ref, 'refs/tags/v') && 'staging' || 'staging'  }}
+  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'develop' || github.ref == 'refs/heads/qa' && 'qa' || startsWith(github.ref, 'refs/tags/v') && 'prod' || 'staging' }}
 
 jobs:
   build-and-test:
