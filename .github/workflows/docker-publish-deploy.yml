@@ -125,9 +125,9 @@ jobs:
             VARIABLE_NAME=$(echo $variable_name | cut -d'=' -f 1)
             SECRET_NAME=$(echo $variable_name | cut -d'=' -f 2)
             if [[ -n $SECRET_NAME ]]; then
-              result=$(echo "$ALLMYSECRETS" | jq -r ".${PREFIX}$SECRET_NAME")
+              result=$(echo "$ALLMYVARS" | jq -r ".${PREFIX}$SECRET_NAME")
               if [[ $result == 'null' ]]; then
-                result=$(echo "$ALLMYVARS" | jq -r ".${PREFIX}$SECRET_NAME")
+                result=$(echo "$ALLMYSECRETS" | jq -r ".${PREFIX}$SECRET_NAME")
                 if [[ $result == 'null' ]]; then
                   result=$SECRET_NAME
                 fi
