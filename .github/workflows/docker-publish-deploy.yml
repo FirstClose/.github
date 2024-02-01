@@ -142,12 +142,6 @@ jobs:
           ENV: ${{ env.ENVIRONMENT_NAME }}
           ALLMYSECRETS: ${{ toJson(secrets) }}
           ALLMYVARS: ${{ toJson(vars) }}
-      # TODO: Remove
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ github.sha }}
-          path: .env
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer

@@ -13,7 +13,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-ng
   REPO_NAME: ""
-  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'develop' || github.ref == 'refs/heads/qa' && 'qa' || startsWith(github.ref, 'refs/tags/v') && 'prod' || 'staging' }}
+  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'develop' || github.ref == 'refs/heads/qa' && 'qa' || startsWith(github.ref, 'refs/tags/v') && 'prod' || 'develop' }}
 
 jobs:
   build-and-test:
@@ -112,12 +112,6 @@ jobs:
           ENV: ${{ env.ENVIRONMENT_NAME }}
           ALLMYSECRETS: ${{ toJson(secrets) }}
           ALLMYVARS: ${{ toJson(vars) }}
-      # TODO: Remove
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ github.sha }}
-          path: .env
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
