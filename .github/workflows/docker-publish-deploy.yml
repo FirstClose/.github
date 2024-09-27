@@ -225,8 +225,7 @@ jobs:
 
     steps:
       - name: Send deployment to Swarmia
-        if: success() && inputs.application_name != ''
-        # success() && inputs.application_name != '' && (env.ENVIRONMENT_NAME == 'prod' || env.ENVIRONMENT_NAME == 'staging' )
+        if: success() && inputs.application_name != '' && (env.ENVIRONMENT_NAME == 'prod' || env.ENVIRONMENT_NAME == 'staging' )
         run: |
           JSON_STRING=$( jq --null-input --compact-output \
             --arg version "${{ github.sha }}" \
