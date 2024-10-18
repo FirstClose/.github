@@ -226,6 +226,7 @@ jobs:
     steps:
       - name: Send deployment to Swarmia
         if: success() && inputs.application_name != ''
+        continue-on-error: true
         run: |
           JSON_STRING=$( jq --null-input --compact-output \
             --arg version "${{ github.sha }}" \
@@ -234,7 +235,9 @@ jobs:
             --arg commitSha "${{ github.sha }}" \
             --arg repositoryFullName "${{ github.repository }}" \
             '{"version": $version, "appName": $appName, "environment": $environment, "commitSha": $commitSha, "repositoryFullName": $repositoryFullName}' )
-      
+          
+          echo "JSON_STRING: $JSON_STRING"
+
           curl -H "Authorization: ${{ secrets.SWARMIA_DEPLOYMENTS_AUTHORIZATION }}" \
             -H "Content-Type: application/json" \
             -d "$JSON_STRING" \
