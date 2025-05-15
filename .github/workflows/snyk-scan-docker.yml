@@ -2,6 +2,9 @@ name: Scan docker images for Vulnerabilities
 on:
   workflow_call:
     inputs:
+      env_name:
+        required: false
+        type: string
       dockerfile_path:
         required: false
         type: string
@@ -26,10 +29,16 @@ on:
         type: boolean
         default: false
         description: "Enable Snyk monitor after the scan (send it to snyk dashboard)"
+    secrets:
+      SNYK_TOKEN:
+        required: true
+        description: "Snyk API token for auth"
 
 jobs:
   snyk-scan:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.env_name }}
     steps:
       - name: snyk docker scan
         uses: snyk/actions/docker@master
@@ -39,4 +48,4 @@ jobs:
           command: ${{ inputs.monitor == true && 'monitor' || 'test' }}
           args: ${{ inputs.dockerfile_path && format('--file={0}', inputs.dockerfile_path) || '' }} ${{ inputs.debug_mode == true && '--debug' || '' }}
         env:
-          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
