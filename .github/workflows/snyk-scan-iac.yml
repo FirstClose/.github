@@ -1,0 +1,41 @@
+name: Scan IaC for vulnerabilities
+
+on:
+  workflow_call:
+    inputs:
+      iac_path:
+        required: false
+        type: string
+        default: "./terraform"
+        description: "path to IaC files/directory to scan, like ./terraform or ./manifest.yml"
+      # ----- snyk config
+      continue_on_error:
+        required: false
+        type: boolean
+        default: true
+        description: "Snyk continue on error property value"
+      debug_mode:
+        required: false
+        type: boolean
+        default: false
+        description: "Enable debug logs in Snyk CLI output"
+      monitor:
+        required: false
+        type: boolean
+        default: false
+        description: "Enable Snyk monitor after the scan (send it to snyk dashboard)"
+
+jobs:
+  snyk-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Snyk IaC Scan
+        uses: snyk/actions/iac@master
+        continue-on-error: ${{ inputs.continue_on_error }}
+        with:
+          file: ${{ inputs.iac_path }}
+          command: ${{ inputs.monitor == true && 'monitor' || 'test'}}
+          args: ${{ inputs.debug_mode == true && '--debug' || ''}}
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
