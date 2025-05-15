@@ -3,6 +3,9 @@ name: Scan IaC for vulnerabilities
 on:
   workflow_call:
     inputs:
+      env_name:
+        required: false
+        type: string
       iac_path:
         required: false
         type: string
@@ -24,10 +27,16 @@ on:
         type: boolean
         default: false
         description: "Enable Snyk monitor after the scan (send it to snyk dashboard)"
+    secrets:
+      SNYK_TOKEN:
+        required: true
+        description: "Snyk API token for auth"
 
 jobs:
   snyk-scan:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.env_name }}
     steps:
       - uses: actions/checkout@v3
       - name: Snyk IaC Scan
@@ -38,4 +47,4 @@ jobs:
           command: ${{ inputs.monitor == true && 'monitor' || 'test'}}
           args: ${{ inputs.debug_mode == true && '--debug' || ''}}
         env:
-          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
