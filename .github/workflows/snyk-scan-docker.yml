@@ -41,6 +41,7 @@ jobs:
     environment:
       name: ${{ inputs.env_name }}
     steps:
+      - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v3
 
       - name: Generate Dynamic Image Tag
