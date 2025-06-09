@@ -73,7 +73,7 @@ jobs:
               pnpm install --frozen-lockfile
               ;;
             npm) 
-              npm ci
+              npm install # Most probably it should be `npm ci`. Left it like this to avoid breaking changes
               ;;
           esac
 
@@ -84,7 +84,7 @@ jobs:
         run: |
           echo ${{ env.ENVIRONMENT_NAME }}
           echo ${{ github.ref }}
-          
+
           ${{ inputs.package-manager }} run build --if-present
           ${{ inputs.package-manager }} run test:cov --if-present
 
