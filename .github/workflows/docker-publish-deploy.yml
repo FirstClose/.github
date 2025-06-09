@@ -2,9 +2,9 @@ name: Containerize and Deploy
 on:
   workflow_call:
     inputs:
-#      env:
-#        type: string
-#        required: true
+      #      env:
+      #        type: string
+      #        required: true
       node-version:
         type: string
         default: 16.x
@@ -12,6 +12,11 @@ on:
         type: string
       application_name:
         type: string
+      package-manager:
+        description: Package manager to use (npm or pnpm)
+        type: string
+        required: false
+        default: npm
     outputs:
       image_version:
         description: "Image version created for the Container"
@@ -33,22 +38,45 @@ jobs:
       contents: read
 
     steps:
+      - name: Validate package-manager input
+        shell: bash
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm | pnpm) 
+              echo "Using: ${{ inputs.package-manager }}"
+              ;;
+            *) 
+              echo "❌ '${{ inputs.package-manager }}' is not supported. Use npm or pnpm." >&2
+              exit 1
+              ;;
+          esac
+
       # checkout the code
       - name: Check out code
         uses: actions/checkout@v3
 
       # Run install/build/test for all the matrix versions
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ inputs.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node-version }}
-          cache: "npm"
+          cache: ${{ inputs.package-manager }}
           registry-url: https://npm.pkg.github.com/
           scope: "@firstclose"
 
       # Install NPM packages
       - name: Install NPM packages
-        run: npm install
+        run: |
+          case "${{ inputs.package-manager }}" in
+            pnpm) 
+              corepack enable
+              pnpm install --frozen-lockfile
+              ;;
+            npm) 
+              npm ci
+              ;;
+          esac
+
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
 
@@ -56,8 +84,9 @@ jobs:
         run: |
           echo ${{ env.ENVIRONMENT_NAME }}
           echo ${{ github.ref }}
-          npm run build --if-present
-          npm run test:cov --if-present
+          
+          ${{ inputs.package-manager }} run build --if-present
+          ${{ inputs.package-manager }} run test:cov --if-present
 
       # Cache the coverage report
       - name: Cache coverage reports
@@ -66,32 +95,32 @@ jobs:
           path: coverage
           key: current-test-coverage
 
-#  sonarcloud:
-#    name: SonarCloud
-#    runs-on: ubuntu-latest
-#    needs: build-and-test
-#
-#    steps:
-#      - name: Check out code
-#        uses: actions/checkout@v3
-#        with:
-#          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-#      # Get the coverage report from cache
-#      - name: Get coverage reports from cache
-#        uses: actions/cache@v3
-#        with:
-#          path: coverage
-#          key: current-test-coverage
-#      - name: SonarCloud Scan
-#        uses: SonarSource/sonarcloud-github-action@master
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  #  sonarcloud:
+  #    name: SonarCloud
+  #    runs-on: ubuntu-latest
+  #    needs: build-and-test
+  #
+  #    steps:
+  #      - name: Check out code
+  #        uses: actions/checkout@v3
+  #        with:
+  #          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+  #      # Get the coverage report from cache
+  #      - name: Get coverage reports from cache
+  #        uses: actions/cache@v3
+  #        with:
+  #          path: coverage
+  #          key: current-test-coverage
+  #      - name: SonarCloud Scan
+  #        uses: SonarSource/sonarcloud-github-action@master
+  #        env:
+  #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   containerize:
     name: Dockerize
     runs-on: ubuntu-latest
-#    needs: [build-and-test, sonarcloud]
+    #    needs: [build-and-test, sonarcloud]
     needs: [build-and-test]
     permissions:
       contents: read
@@ -212,7 +241,7 @@ jobs:
         # against the sigstore community Fulcio instance, and records it to the
         # sigstore community Rekor transparency log.
         run: cosign sign ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build-and-push.outputs.digest }}
-  
+
   send-swarmia-deployment:
     name: Send Deployment to Swarmia
     runs-on: ubuntu-latest
@@ -235,7 +264,7 @@ jobs:
             --arg commitSha "${{ github.sha }}" \
             --arg repositoryFullName "${{ github.repository }}" \
             '{"version": $version, "appName": $appName, "environment": $environment, "commitSha": $commitSha, "repositoryFullName": $repositoryFullName}' )
-          
+
           echo "JSON_STRING: $JSON_STRING"
 
           curl -H "Authorization: ${{ secrets.SWARMIA_DEPLOYMENTS_AUTHORIZATION }}" \
