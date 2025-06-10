@@ -54,6 +54,10 @@ jobs:
       # checkout the code
       - name: Check out code
         uses: actions/checkout@v3
+      
+      # Install pnpm if it's the selected package manager
+      - uses: pnpm/action-setup@v2
+        if: inputs.package-manager == 'pnpm'
 
       # Run install/build/test for all the matrix versions
       - name: Use Node.js ${{ inputs.node-version }}
@@ -69,7 +73,6 @@ jobs:
         run: |
           case "${{ inputs.package-manager }}" in
             pnpm) 
-              corepack enable
               pnpm install --frozen-lockfile
               ;;
             npm) 
