@@ -38,7 +38,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Validate package-manager input
+      - name: "Validate package-manager: ${{ inputs.package-manager }}"
         shell: bash
         run: |
           case "${{ inputs.package-manager }}" in
@@ -68,8 +68,8 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: "@firstclose"
 
-      # Install NPM packages
-      - name: Install NPM packages
+      # Install packages
+      - name: Install ${{ inputs.package-manager }} packages
         run: |
           case "${{ inputs.package-manager }}" in
             pnpm) 
@@ -88,8 +88,8 @@ jobs:
           echo ${{ env.ENVIRONMENT_NAME }}
           echo ${{ github.ref }}
 
-          ${{ inputs.package-manager }} run build --if-present
-          ${{ inputs.package-manager }} run test:cov --if-present
+          ${{ inputs.package-manager }} --if-present run build 
+          ${{ inputs.package-manager }} --if-present run test:cov 
 
       # Cache the coverage report
       - name: Cache coverage reports
