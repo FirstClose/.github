@@ -1,0 +1,71 @@
+name: GitHub Deployment Tracker
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment to create deployment for'
+        required: true
+        type: string
+    secrets:
+      token:
+        required: true
+
+jobs:
+  create-deployment:
+    name: Create GitHub Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate Deployment Description with PRs and JIRA Keys
+        id: deployment-info
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "Latest tag: $LAST_TAG"
+
+          if [ -n "$LAST_TAG" ]; then
+            LOG_RANGE="$LAST_TAG..HEAD"
+          else
+            LOG_RANGE="HEAD~50..HEAD"
+          fi
+
+          PR_TITLES=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "#[0-9]+" | sort -u)
+          JIRA_KEYS=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "[A-Z]+-[0-9]+" | sort -u)
+
+          DESC="**Merged PRs:**\n"
+          for PR in $PR_TITLES; do
+            DESC="$DESC- $PR\n"
+          done
+
+          DESC="$DESC\n**JIRA Issues:**\n"
+          for KEY in $JIRA_KEYS; do
+            DESC="$DESC- $KEY\n"
+          done
+
+          echo -e "$DESC" > deployment-description.txt
+          echo "description<<EOF" >> $GITHUB_OUTPUT
+          cat deployment-description.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Deployment in GitHub
+        uses: bobheadxi/deployments@v1
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.token }}
+          env: ${{ inputs.environment }}
+          description: ${{ steps.deployment-info.outputs.description }}
+          ref: ${{ github.sha }}
+
+      - name: Mark Deployment as Successful
+        uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.token }}
+          env: ${{ inputs.environment }}
+          status: ${{ job.status }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
