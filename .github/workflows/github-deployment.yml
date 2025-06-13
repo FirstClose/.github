@@ -23,11 +23,9 @@ jobs:
       - name: Generate Deployment Description with PRs and JIRA Keys
         id: deployment-info
         run: |
-          # Get latest tag or fallback to empty string
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "Latest tag: $LAST_TAG"
 
-          # Get merged PRs since last tag or last 50 commits if no tag
           if [ -n "$LAST_TAG" ]; then
             LOG_RANGE="$LAST_TAG..HEAD"
           else
