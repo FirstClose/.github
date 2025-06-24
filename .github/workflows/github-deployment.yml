@@ -67,7 +67,7 @@ jobs:
           step: start
           token: ${{ secrets.token }}
           env: ${{ inputs.environment }}
-          description: ${{ steps.deployment-info.outputs.description }}
+          desc: ${{ steps.deployment-info.outputs.description }}
           ref: ${{ github.sha }}
 
       - name: Mark Deployment as Successful
