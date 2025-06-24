@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 100  
 
       - name: Generate Deployment Description with PRs and JIRA Keys
         id: deployment-info
@@ -26,14 +28,22 @@ jobs:
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           echo "Latest tag: $LAST_TAG"
 
+          if git rev-parse HEAD~50 >/dev/null 2>&1; then
+            FALLBACK_RANGE="HEAD~50..HEAD"
+          else
+            FALLBACK_RANGE="HEAD"
+          fi
+
           if [ -n "$LAST_TAG" ]; then
             LOG_RANGE="$LAST_TAG..HEAD"
           else
-            LOG_RANGE="HEAD~50..HEAD"
+            LOG_RANGE="$FALLBACK_RANGE"
           fi
 
-          PR_TITLES=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "#[0-9]+" | sort -u)
-          JIRA_KEYS=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "[A-Z]+-[0-9]+" | sort -u)
+          echo "Using log range: $LOG_RANGE"
+
+          PR_TITLES=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "#[0-9]+" | sort -u || true)
+          JIRA_KEYS=$(git log $LOG_RANGE --pretty=format:"%s" | grep -Eo "[A-Z]+-[0-9]+" | sort -u || true)
 
           DESC="**Merged PRs:**\n"
           for PR in $PR_TITLES; do
