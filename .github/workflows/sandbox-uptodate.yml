@@ -1,0 +1,24 @@
+name: Update Sandbox branch
+on:
+  workflow_call:
+
+jobs:
+  merge-branch:
+    name: update Sandbox branch/env
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT_TOKEN }}
+
+      - name: Merge main to sandbox
+        run: |
+          git config --local user.email "itops@firstclose.com"
+          git config --local user.name "ItOps-FC"
+          git fetch origin sandbox
+          git checkout sandbox && git pull origin sandbox
+          git merge --no-ff origin/main -m "Auto-merge main to sandbox"
+          git push origin sandbox
