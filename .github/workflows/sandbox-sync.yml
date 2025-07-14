@@ -15,11 +15,14 @@ jobs:
           ref: main
           token: ${{ secrets.GH_PAT_TOKEN }}
 
-      - name: Merge main to sandbox
+      - name: Git configuration
         run: |
           git config --local user.email "itops@firstclose.com"
           git config --local user.name "ItOps-FC"
-          git fetch origin sandbox
-          git checkout sandbox && git pull origin sandbox
-          git merge --no-ff origin/main -m "Auto-merge main to sandbox"
-          git push origin sandbox
+
+      - name: Sandbox sync with main
+        run: |
+          git fetch origin
+          git checkout sandbox
+          git reset --hard origin/main
+          git push origin sandbox --force
