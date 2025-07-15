@@ -10,7 +10,7 @@ jobs:
     name: update Sandbox branch/env
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - name: Check out code
         uses: actions/checkout@v4
