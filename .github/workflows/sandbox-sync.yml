@@ -1,6 +1,9 @@
 name: Update Sandbox branch
 on:
   workflow_call:
+    secrets:
+      GH_PAT_TOKEN:
+        required: true
 
 jobs:
   merge-branch:
