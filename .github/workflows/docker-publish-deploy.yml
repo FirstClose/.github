@@ -150,6 +150,8 @@ jobs:
             PREFIX=QA_
           elif [[ $ENV == 'staging' ]]; then
             PREFIX=UAT_
+          elif [[ $ENV == 'sandbox' ]]; then
+            PREFIX=SANDBOX_
           elif [[ $ENV == 'prod' ]]; then
             PREFIX=''
           else
