@@ -50,7 +50,7 @@ jobs:
       - name: Install NPM packages
         run: npm install
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_REGISTRY_PACKAGES }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
 
       - name: Build and run tests
         run: |
@@ -197,7 +197,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           secrets: |
-            "github_registry_token=${{ secrets.GH_REGISTRY_PACKAGES }}"
+            "github_registry_token=${{ secrets.GH_PAT_TOKEN }}"
 
       # Sign the resulting Docker image digest except on PRs and private repos
       # The keyless signing process records signatures on the Rekor public
