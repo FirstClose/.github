@@ -21,7 +21,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-ng
   REPO_NAME: ""
-  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/develop' && 'develop' || github.ref == 'refs/heads/qa' && 'qa' || startsWith(github.ref, 'refs/tags/v') && 'prod' || 'develop' }}
+  ENVIRONMENT_NAME: ${{ github.ref == 'refs/heads/main' && 'staging' || github.ref == 'refs/heads/sandbox' && 'sandbox' || github.ref == 'refs/heads/develop' && 'develop' || github.ref == 'refs/heads/qa' && 'qa' || startsWith(github.ref, 'refs/tags/v') && 'prod' || 'develop' }}
 
 jobs:
   build-and-test:
@@ -118,6 +118,8 @@ jobs:
             PREFIX=QA_
           elif [[ $ENV == 'staging' ]]; then
             PREFIX=UAT_
+          elif [[ $ENV == 'sandbox' ]]; then
+            PREFIX=SANDBOX_
           elif [[ $ENV == 'prod' ]]; then
             PREFIX=''
           else
