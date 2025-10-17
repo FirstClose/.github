@@ -36,4 +36,4 @@ jobs:
           git fetch origin
           git checkout ${{ inputs.branch-b }}
           git reset --hard origin/${{ inputs.branch-a}}
-          git push origin ${{ inputs.branch-b }} --force
+          git push origin ${{ inputs.branch-b }} --force-with-lease
