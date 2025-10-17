@@ -1,0 +1,39 @@
+name: Sync Branch A to Branch B
+
+on:
+  workflow_call:
+    inputs:
+      branch-a:
+        required: true
+        type: string
+      branch-b:
+        required: true
+        type: string
+    secrets:
+      GH_PAT_TOKEN:
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  sync-between-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch-a }}
+          token: ${{ secrets.GH_PAT_TOKEN }}
+
+      - name: Git configuration
+        run: |
+          git config --local user.email "itops@firstclose.com"
+          git config --local user.name "ItOps-FC"
+
+      - name: ${{ inputs.branch-a }} to ${{ inputs.branch-b }} sync
+        run: |
+          git fetch origin
+          git checkout ${{ inputs.branch-b }}
+          git reset --hard origin/${{ inputs.branch-a}}
+          git push origin ${{ inputs.branch-b }} --force-with-lease
