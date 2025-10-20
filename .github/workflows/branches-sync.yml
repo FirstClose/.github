@@ -35,5 +35,7 @@ jobs:
         run: |
           git fetch origin
           git checkout ${{ inputs.branch-b }}
-          git reset --hard origin/${{ inputs.branch-a}}
-          git push origin ${{ inputs.branch-b }} --force-with-lease
+          git rm -rf .
+          git checkout origin/${{ inputs.branch-a }} -- .
+          git commit -m "Sync changes from ${{ inputs.branch-a }} to ${{ inputs.branch-b }}"
+          git push origin ${{ inputs.branch-b }}
