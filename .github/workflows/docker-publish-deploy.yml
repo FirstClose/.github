@@ -12,6 +12,11 @@ on:
         type: string
       application_name:
         type: string
+      package-manager:
+        description: Package manager to use (npm or pnpm)
+        type: string
+        required: false
+        default: npm
     outputs:
       image_version:
         description: "Image version created for the Container"
@@ -33,22 +38,48 @@ jobs:
       contents: read
 
     steps:
+      - name: "Validate package-manager: ${{ inputs.package-manager }}"
+        shell: bash
+        run: |
+          case "${{ inputs.package-manager }}" in
+            npm | pnpm) 
+              echo "Using: ${{ inputs.package-manager }}"
+              ;;
+            *) 
+              echo "❌ '${{ inputs.package-manager }}' is not supported. Use npm or pnpm." >&2
+              exit 1
+              ;;
+          esac
+
       # checkout the code
       - name: Check out code
         uses: actions/checkout@v3
 
+      # Install pnpm if it's the selected package manager
+      - uses: pnpm/action-setup@v2
+        if: inputs.package-manager == 'pnpm'
+
       # Run install/build/test for all the matrix versions
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ inputs.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node-version }}
-          cache: "npm"
+          cache: ${{ inputs.package-manager }}
           registry-url: https://npm.pkg.github.com/
           scope: "@firstclose"
 
-      # Install NPM packages
-      - name: Install NPM packages
-        run: npm install
+      # Install packages
+      - name: Install ${{ inputs.package-manager }} packages
+        run: |
+          case "${{ inputs.package-manager }}" in
+            pnpm) 
+              pnpm install --frozen-lockfile
+              ;;
+            npm) 
+              npm install # Most probably it should be `npm ci`. Left it like this to avoid breaking changes
+              ;;
+          esac
+
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GH_PAT_TOKEN }}
 
@@ -56,8 +87,9 @@ jobs:
         run: |
           echo ${{ env.ENVIRONMENT_NAME }}
           echo ${{ github.ref }}
-          npm run build --if-present
-          npm run test:cov --if-present
+
+          ${{ inputs.package-manager }} --if-present run build 
+          ${{ inputs.package-manager }} --if-present run test:cov
 
       # Cache the coverage report
       - name: Cache coverage reports
