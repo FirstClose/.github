@@ -35,7 +35,7 @@ jobs:
         run: |
           git fetch origin
           git checkout ${{ inputs.branch-b }}
-          git merge --no-commit -s ours ${{ inputs.branch-a }}
+          git merge --no-commit -s ours ${{ inputs.branch-a }} --allow-unrelated-histories
           git rm -rf .
           git checkout origin/${{ inputs.branch-a }} -- .
           git add -A
